@@ -1,4 +1,4 @@
-HERE WE DEFINE THE FLOW OF OUR MINI PROJECT 
+...........HERE WE DEFINE THE FLOW OF OUR MINI PROJECT...........
  
  OUR GOAL : BUILD A MINI E-COMMERCE INVENTORY TRACKER 
  Tech stack: Python + FastAPI + Jinja2 templates (frontend + backend in one)
