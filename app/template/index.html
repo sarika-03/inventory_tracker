@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Inventory Tracker</title>
+</head>
+<body>
+    <h1>Product List</h1>
+    <a href="/add">Add Product</a> <!-- Link to add new product -->
+    
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>SKU</th>
+            <th>Price</th>
+            <th>Stock</th>
+        </tr>
+        {% for p in products %} <!-- Loop through products passed from backend -->
+        <tr>
+            <td>{{ p.id }}</td>
+            <td>{{ p.name }}</td>
+            <td>{{ p.sku }}</td>
+            <td>{{ p.price }}</td>
+            <td>{{ p.stock }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

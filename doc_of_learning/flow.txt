@@ -1,0 +1,56 @@
+HERE WE DEFINE THE FLOW OF OUR MINI PROJECT 
+ 
+ OUR GOAL : BUILD A MINI E-COMMERCE INVENTORY TRACKER 
+ Tech stack: Python + FastAPI + Jinja2 templates (frontend + backend in one)
+ Features:
+  1 . List all products
+  2 .  Add new products via HTML form
+  3 . For storage we use database
+
+Modules & What They Do
+a) FastAPI
+Handles web server + routing + API endpoints
+
+b) Jinja2Templates
+Used to render HTML pages from backend
+
+c) Pydantic
+Validates input data automatically
+Ensures all submitted data is correct type (int, float, str)
+
+d) HTML Forms (Frontend)
+add_product.html has <form> elements
+Data is sent to backend via POST
+Backend receives using Form(...) in FastAPI
+
+
+Full Flow – Step by Step
+
+Step 1 – User visits homepage
+URL: /
+FastAPI runs home() endpoint
+Python passes products list to index.html
+HTML page renders table of products
+
+Step 2 – User clicks Add Product
+URL: /add
+FastAPI runs add_product_page()
+Returns add_product.html (HTML form)
+
+Step 3 – User submits form
+Form method: POST /add
+Backend runs add_product_form() endpoint
+Receives values using Form(...)
+Creates a Product instance
+Adds it to products list (in-memory storage)
+Returns updated index.html page
+
+Why Each Module is Needed ?
+
+Module---Purpose
+FastAPI	------ Web server, routing, handles GET/POST requests
+Jinja2Templates	------- Render dynamic HTML pages from Python data
+Pydantic------Validate input data, ensures correct types
+python-multipart------- Needed to process form data (Form(...))
+uvicorn---- ASGI server to run FastAPI
+
