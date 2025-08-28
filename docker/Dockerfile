@@ -1,6 +1,7 @@
-FROM python:3.12-slim as builder
+FROM python:3.12-slim AS builder
 WORKDIR /app
 COPY requirements.txt .
+RUN pip install --upgrade pip 
 RUN pip install --prefix=/install -r requirements.txt
 
 
