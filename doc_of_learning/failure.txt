@@ -1,3 +1,11 @@
 1st
 ERROR: Could not open requirements file: [Errno 2] No such file or directory: 'requirements.txt'
 solution = i place RUN pip install -r requirments.txt before COPY all files in WORKDIR then i interchange them and problem solved 
+
+2nd 
+error : lots of error in pip install requirements bcoz i don't upgrade it
+solution: then i use pip install --upgrade pip and other things too
+
+3rd
+error: a small typo but still play role in learning ( AS ko as likh diya ) 
+solution: as -----> AS builder 
