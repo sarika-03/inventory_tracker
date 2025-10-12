@@ -1,0 +1,92 @@
+pipeline {
+    agent any 
+    stages {
+        stage("checkout") {
+            steps {
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'github', url: 'https://github.com/sarika-03/inventory_tracker']])
+                script {
+                    env.BRANCH_NAME = "main"
+                }
+            }
+        }
+        stage("setup") {
+            steps {
+                sh '''
+                python3 -m venv venv
+                . venv/bin/activate && \
+                pip install --upgrade pip && \
+                pip install -r docker/requirements.txt && \
+                pip install pytest
+                ls -la venv/bin/
+                '''
+            }
+        }
+
+        stage("image_build") {
+            steps {
+                sh "docker build -t sarika03/inventory:3.12-slim docker/"
+            }
+        }
+
+        stage("docker_login") {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'PASS', usernameVariable: 'USERNAME')]) {
+                    sh '''
+                        echo "$PASS" | docker login -u "$USERNAME" --password-stdin
+                    '''
+                }
+            }
+        }
+
+        stage("push image") {
+            steps {
+                sh "docker push sarika03/inventory:3.12-slim"
+            }
+        }
+    }
+
+    post {
+        success {
+            emailext(
+                body: """Hello Team,
+
+The Jenkins pipeline job has SUCCESSFULLY completed.
+
+Job: ${JOB_NAME}
+Build Number: ${BUILD_NUMBER}
+Build URL: ${BUILD_URL}
+Branch: ${BRANCH_NAME}
+
+Regards,
+Jenkins CI/CD
+""",
+                recipientProviders: [developers()],
+                subject: "SUCCESS: Job ${JOB_NAME} [${BUILD_NUMBER}]",
+                to: "sarikasharma9711@gmail.com"
+            )
+        }
+
+        failure {
+            emailext(
+                body: """Hello Team,
+
+The Jenkins pipeline job has NOT SUCCESSFULLY completed.
+
+Job: ${JOB_NAME}
+Build Number: ${BUILD_NUMBER}
+Build URL: ${BUILD_URL}
+Branch: ${BRANCH_NAME}
+
+Please check the console output for details:
+${BUILD_URL}console
+
+Regards,
+Jenkins CI/CD
+""",
+                recipientProviders: [developers()],
+                subject: "FAILURE: Job ${JOB_NAME} [${BUILD_NUMBER}]",
+                to: "sarikasharma9711@gmail.com"
+            )
+        }
+    }
+}
