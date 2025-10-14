@@ -2,3 +2,5 @@ fastapi
 uvicorn[standard]
 jinja2
 pydantic
+
+# See /terraform for Terraform demo and /k8s for Kubernetes demo

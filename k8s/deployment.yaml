@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory-fastapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inventory
+  template:
+    metadata:
+      labels:
+        app: inventory
+    spec:
+      containers:
+        - name: fastapi-app
+          image: yourdockerhub/yourimage:latest # Change to your image or use fastapi example
+          ports:
+            - containerPort: 8000

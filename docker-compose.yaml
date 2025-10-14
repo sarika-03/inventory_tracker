@@ -1,2 +1,1 @@
-version: 
-service: 
+# See /terraform for infrastructure as code and /k8s for K8s manifests (DevOps learner) 
