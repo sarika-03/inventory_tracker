@@ -2,11 +2,11 @@ pipeline {
     agent any
     
     environment {
-        // NOTE: DOCKERHUB_CREDENTIALS automatically provides DOCKERHUB_CREDENTIALS_USR and DOCKERHUB_CREDENTIALS_PSW
+        
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
         DOCKER_IMAGE = "sarika1731/inventory:3.12-slim"
         TF_VAR_docker_image = "${DOCKER_IMAGE}"
-        // env.BRANCH_NAME is set in the Checkout stage, so we use it here.
+        
         TF_VAR_environment = "${env.BRANCH_NAME == 'main' ? 'prod' : 'dev'}"
     }
     
@@ -14,8 +14,7 @@ pipeline {
         stage("Checkout") {
             steps {
                 script {
-                    // Set BRANCH_NAME early so it's available in the environment block (for TF_VAR_environment)
-                    // We set it explicitly here since the job only checks out 'main'
+                    
                     env.BRANCH_NAME = "main" 
                 }
                 checkout scmGit(
@@ -29,7 +28,7 @@ pipeline {
             }
         }
         
-        // ... (Baaki saare stages wahi rahenge)
+        
         
         stage("Setup Python Environment") {
             steps {
@@ -129,27 +128,27 @@ pipeline {
     
     post {
         always {
-            // Context error fix: dir() step ko script block mein wrap kiya.
+
             script {
                 dir('terraform') {
                     sh 'terraform output -json > terraform-output.json || true'
                     archiveArtifacts artifacts: 'terraform-output.json', allowEmptyArchive: true
                 }
                 
-                // Docker logout
+                
                 sh 'docker logout || true'
             }
         }
         
         success {
-            // BRANCH_NAME, DOCKER_IMAGE, etc. environment variables hain, isliye yeh theek hai.
+            
             emailext(
                 body: """Hello Team,
 ...
 Branch: ${BRANCH_NAME}
 ...
 """,
-                // ... (rest of the success email)
+                
                 recipientProviders: [developers()],
                 subject: "✅ SUCCESS: Job ${JOB_NAME} [${BUILD_NUMBER}]",
                 to: "sarikasharma9711@gmail.com"
@@ -157,7 +156,7 @@ Branch: ${BRANCH_NAME}
         }
         
         failure {
-            // BRANCH_NAME variable missing error fix: emailext ko script block mein wrap karo
+
             script {
                 emailext(
                     body: """Hello Team,

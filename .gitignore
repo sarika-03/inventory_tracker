@@ -1,4 +1,11 @@
 
-# Local DevOps learning
-# terraform/
-# k8s/
+__pycache__/
+*.pyc
+venv/
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+*.logs
+.DS_Store
+.vscode/
