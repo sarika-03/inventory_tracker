@@ -35,3 +35,7 @@ def add_product_form(
     products.append(product)  # Add to in-memory list
     # Return to home page with updated product list
     return templates.TemplateResponse("index.html", {"request": request, "products": products})
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
