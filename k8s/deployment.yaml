@@ -14,5 +14,7 @@ spec:
     spec:
       containers:
         - name: fastapi-app
-          image: tiangolo/uvicorn-gunicorn-fastapi:python3.9 
+          image: sarika1731/inventory:3.12-slim
+          ports:
             - containerPort: 8000
+

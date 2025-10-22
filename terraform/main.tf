@@ -2,6 +2,10 @@ terraform {
   required_version = ">= 1.0"
 
   required_providers {
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = "~> 3.0.1"
+    }
     kubernetes = {
       source  = "hashicorp/kubernetes"
       version = "~> 2.23"
@@ -13,14 +17,25 @@ terraform {
   }
 }
 
+
+provider "docker" {
+  host = "unix:///var/run/docker.sock"
+}
+
 provider "kubernetes" {
   config_path = "~/.kube/config"
 }
 
 variable "docker_image" {
-  description = "Docker image name for K8s deployment"
+  description = "Docker image name from Jenkins"
   type        = string
-  default     = "inventory:latest"
+  default     = "sarika1731/inventory:3.12-slim"
+}
+
+variable "container_name" {
+  description = "Container name"
+  type        = string
+  default     = "inventory-tracker-app"
 }
 
 variable "app_port" {
@@ -41,14 +56,34 @@ variable "replicas" {
   default     = 1
 }
 
-# Kubernetes Namespace
+resource "docker_image" "inventory_app" {
+  name         = var.docker_image
+  keep_locally = false
+}
+
+resource "docker_container" "inventory_app" {
+  name  = var.container_name
+  image = docker_image.inventory_app.image_id
+
+  ports {
+    internal = var.app_port
+    external = var.app_port
+  }
+
+  restart = "unless-stopped"
+
+  env = [
+    "ENVIRONMENT=${var.environment}",
+    "PORT=${var.app_port}"
+  ]
+}
+
 resource "kubernetes_namespace" "inventory" {
   metadata {
     name = "inventory-${var.environment}"
   }
 }
 
-# Kubernetes Deployment
 resource "kubernetes_deployment" "inventory_fastapi" {
   metadata {
     name      = "inventory-fastapi"
@@ -61,7 +96,6 @@ resource "kubernetes_deployment" "inventory_fastapi" {
 
   spec {
     replicas = var.replicas
-
     selector {
       match_labels = {
         app = "inventory"
@@ -119,7 +153,6 @@ resource "kubernetes_deployment" "inventory_fastapi" {
   }
 }
 
-# Kubernetes Service
 resource "kubernetes_service" "inventory_service" {
   metadata {
     name      = "inventory-service"
@@ -143,10 +176,14 @@ resource "kubernetes_service" "inventory_service" {
 
 # Fetch Minikube IP
 data "external" "minikube_ip" {
-  program = ["bash", "-c", "echo '{\"ip\":\"'$(minikube ip)'\"}'"]
+  program = ["bash", "-c", "minikube ip | jq -R -n --arg ip $(cat) '{ip:$ip}'"]
 }
 
-# Outputs
+output "docker_container" {
+  description = "Container ID of the deployed app"
+  value       = docker_container.inventory_app.id
+}
+
 output "kubernetes_namespace" {
   description = "Kubernetes namespace"
   value       = kubernetes_namespace.inventory.metadata[0].name

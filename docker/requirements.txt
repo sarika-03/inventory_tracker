@@ -1,6 +1,5 @@
-fastapi
-uvicorn[standard]
-jinja2
-pydantic
-
-# See /terraform for Terraform demo and /k8s for Kubernetes demo
+fastapi==0.104.1
+uvicorn==0.24.0
+jinja2==3.1.2
+python-multipart==0.0.6
+pydantic==2.4.2
