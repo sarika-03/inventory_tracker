@@ -2,15 +2,22 @@ pipeline {
     agent any
     
     environment {
+        // NOTE: DOCKERHUB_CREDENTIALS automatically provides DOCKERHUB_CREDENTIALS_USR and DOCKERHUB_CREDENTIALS_PSW
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
         DOCKER_IMAGE = "sarika1731/inventory:3.12-slim"
         TF_VAR_docker_image = "${DOCKER_IMAGE}"
+        // env.BRANCH_NAME is set in the Checkout stage, so we use it here.
         TF_VAR_environment = "${env.BRANCH_NAME == 'main' ? 'prod' : 'dev'}"
     }
     
     stages {
         stage("Checkout") {
             steps {
+                script {
+                    // Set BRANCH_NAME early so it's available in the environment block (for TF_VAR_environment)
+                    // We set it explicitly here since the job only checks out 'main'
+                    env.BRANCH_NAME = "main" 
+                }
                 checkout scmGit(
                     branches: [[name: '*/main']], 
                     extensions: [], 
@@ -19,11 +26,10 @@ pipeline {
                         url: 'https://github.com/sarika-03/inventory_tracker'
                     ]]
                 )
-                script {
-                    env.BRANCH_NAME = "main"
-                }
             }
         }
+        
+        // ... (Baaki saare stages wahi rahenge)
         
         stage("Setup Python Environment") {
             steps {
@@ -123,39 +129,27 @@ pipeline {
     
     post {
         always {
-            // Terraform output save karna
-            dir('terraform') {
-                sh 'terraform output -json > terraform-output.json || true'
-                archiveArtifacts artifacts: 'terraform-output.json', allowEmptyArchive: true
+            // Context error fix: dir() step ko script block mein wrap kiya.
+            script {
+                dir('terraform') {
+                    sh 'terraform output -json > terraform-output.json || true'
+                    archiveArtifacts artifacts: 'terraform-output.json', allowEmptyArchive: true
+                }
+                
+                // Docker logout
+                sh 'docker logout || true'
             }
-            
-            // Docker logout
-            sh 'docker logout || true'
         }
         
         success {
+            // BRANCH_NAME, DOCKER_IMAGE, etc. environment variables hain, isliye yeh theek hai.
             emailext(
                 body: """Hello Team,
-
-The Jenkins pipeline job has SUCCESSFULLY completed.
-
-Job: ${JOB_NAME}
-Build Number: ${BUILD_NUMBER}
-Build URL: ${BUILD_URL}
+...
 Branch: ${BRANCH_NAME}
-
-Deployment Details:
-- Docker Image: ${DOCKER_IMAGE}
-- Environment: ${TF_VAR_environment}
-- Terraform Applied: YES
-
-Check the application:
-- Docker: http://localhost:8000
-- Kubernetes: http://<NODE_IP>:30008
-
-Regards,
-Jenkins CI/CD
+...
 """,
+                // ... (rest of the success email)
                 recipientProviders: [developers()],
                 subject: "✅ SUCCESS: Job ${JOB_NAME} [${BUILD_NUMBER}]",
                 to: "sarikasharma9711@gmail.com"
@@ -163,26 +157,19 @@ Jenkins CI/CD
         }
         
         failure {
-            emailext(
-                body: """Hello Team,
-
-The Jenkins pipeline job has FAILED.
-
-Job: ${JOB_NAME}
-Build Number: ${BUILD_NUMBER}
-Build URL: ${BUILD_URL}
-Branch: ${BRANCH_NAME}
-
-Please check the console output for details:
-${BUILD_URL}console
-
-Regards,
-Jenkins CI/CD
+            // BRANCH_NAME variable missing error fix: emailext ko script block mein wrap karo
+            script {
+                emailext(
+                    body: """Hello Team,
+...
+Branch: ${env.BRANCH_NAME}
+...
 """,
-                recipientProviders: [developers()],
-                subject: "❌ FAILURE: Job ${JOB_NAME} [${BUILD_NUMBER}]",
-                to: "sarikasharma9711@gmail.com"
-            )
+                    recipientProviders: [developers()],
+                    subject: "❌ FAILURE: Job ${JOB_NAME} [${BUILD_NUMBER}]",
+                    to: "sarikasharma9711@gmail.com"
+                )
+            }
         }
     }
 }
