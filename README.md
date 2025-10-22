@@ -102,25 +102,27 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 # Access API
 http://localhost:8000/docs
 
-Docker Run (Optional)
+# Docker Run (Optional)
 docker build -f docker/Dockerfile -t inventory-app .
 docker run -d -p 8000:8000 inventory-app
 
-Kubernetes Deploy (Optional)
+# Kubernetes Deploy (Optional)
 kubectl apply -f k8s/deployment.yaml
 kubectl apply -f k8s/service.yaml
 kubectl get pods
 kubectl get services
 
-flowchart LR
-    A[👨‍💻 Developer] -->|git push| B[📁 GitHub]
-    B --> C[🤖 Jenkins CI/CD]
+flowchart TD
+    A[👨‍💻 Developer] -->|Push Code| B[📁 GitHub Repository]
+    B --> C[🤖 Jenkins CI/CD Pipeline]
     C --> D[🐳 Docker Build & Push]
-    D --> E[🏗️ Terraform Apply]
-    E --> F[☸️ Kubernetes Deploy]
+    D --> E[🏗️ Terraform Apply Infrastructure]
+    E --> F[☸️ Kubernetes Deployment]
     F --> G[🌐 Application Running]
-    
+
+    %% Node styles
     style A fill:#e0f7fa,stroke:#006064,stroke-width:2px
+    style B fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style C fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
     style D fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
     style E fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
